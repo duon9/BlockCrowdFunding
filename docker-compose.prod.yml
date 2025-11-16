@@ -3,7 +3,7 @@ version: '3.8'
 services:
   mongodb:
     image: mongo:7.0
-    container_name: blockfund-mongodb
+    container_name: blockfund-mongodb-prod
     environment:
       MONGO_INITDB_ROOT_USERNAME: blockfund
       MONGO_INITDB_ROOT_PASSWORD: blockfund_password
@@ -12,7 +12,7 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
-      - mongodb_config:/data/configdb
+      - mongodb_config:/data/configb
     networks:
       - blockfund-network
     restart: unless-stopped
@@ -26,20 +26,16 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: development
-    container_name: blockfund-app
+      target: production
+    container_name: blockfund-app-prod
     ports:
       - "3000:3000"
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.next
     environment:
       # Database
       DATABASE_URL: mongodb://blockfund:blockfund_password@mongodb:27017/blockfund?authSource=admin
       
       # Next.js
-      NODE_ENV: development
+      NODE_ENV: production
       NEXTAUTH_URL: http://localhost:3000
       
       # ThirdWeb Configuration

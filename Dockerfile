@@ -1,4 +1,27 @@
-# Stage 1: Dependencies
+# Development Stage - For local development with hot reload
+FROM node:20-alpine AS development
+WORKDIR /app
+
+# Copy package files
+COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+
+# Install dependencies
+RUN npm install
+
+# Generate Prisma client
+RUN npx prisma generate
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV NODE_ENV=development
+
+# Code will be mounted as volume, run dev server
+CMD ["npm", "run", "dev"]
+
+# ============================================
+
+# Production Stage
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
@@ -21,7 +44,7 @@ RUN npx prisma generate
 RUN DATABASE_URL="mongodb://dummy:dummy@localhost:27017/dummy" npm run build
 
 # Stage 3: Runtime
-FROM node:20-alpine AS runner
+FROM node:20-alpine AS production
 WORKDIR /app
 
 ENV NODE_ENV=production
