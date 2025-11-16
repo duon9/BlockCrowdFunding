@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Loader2, X } from 'lucide-react'
 import Image from 'next/image'
-import { ThirdwebStorage } from "@thirdweb-dev/storage"
 
 interface UploadImageProps {
   onImageUploaded: (url: string) => void
@@ -15,10 +14,8 @@ export function UploadImage({ onImageUploaded }: UploadImageProps) {
   const [previewUrl, setPreviewUrl] = useState('')
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 })
   
-  // Khởi tạo storage với clientId
-  const storage = new ThirdwebStorage({
-    clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID
-  })
+  // Client ID lấy từ NEXT_PUBLIC env (must be set)
+  const clientId = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || ''
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -62,11 +59,32 @@ export function UploadImage({ onImageUploaded }: UploadImageProps) {
       const dimensions = await getImageDimensions(file)
       setImageSize(dimensions)
 
-      // Upload file lên IPFS thông qua Thirdweb Storage
-      const uri = await storage.upload(file)
-      
-      // Lấy URL gateway để hiển thị ảnh
-      const url = await storage.resolveScheme(uri)
+      // Kiểm tra clientId
+      if (!clientId) {
+        throw new Error('Missing Thirdweb client id (NEXT_PUBLIC_THIRDWEB_CLIENT_ID)')
+      }
+
+      // Upload file lên Thirdweb storage bằng API (yêu cầu x-client-id header)
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const uploadResp = await fetch('https://api.thirdweb.com/storage/upload', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'x-client-id': clientId
+        }
+      })
+
+      if (!uploadResp.ok) {
+        const body = await uploadResp.text()
+        throw new Error(`Upload failed with status ${uploadResp.status} - ${body}`)
+      }
+
+      const uploadResult = await uploadResp.json()
+      const url = uploadResult.url || uploadResult[0]?.url
+      if (!url) throw new Error('Upload did not return a URL')
+
       onImageUploaded(url)
     } catch (error) {
       console.error('Error uploading image:', error)

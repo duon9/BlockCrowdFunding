@@ -27,7 +27,7 @@ const FeaturedProjects = () => {
           <h2 className="text-2xl font-bold text-foreground">Featured Projects</h2>
           <Link 
             href="/projects"
-            className="flex items-center gap-2 text-hufa hover:text-hufa/80 transition-colors"
+            className="flex items-center gap-2 text-purple-400 hover:text-purple-400/80 transition-colors"
           >
             <span>View All</span>
             <ArrowRight className="w-4 h-4" />
@@ -57,7 +57,7 @@ const FeaturedProjects = () => {
         <h2 className="text-2xl font-bold text-foreground">Featured Projects</h2>
         <Link 
           href="/projects"
-          className="flex items-center gap-2 text-hufa hover:text-hufa/80 transition-colors"
+          className="flex items-center gap-2 text-purple-400 hover:text-purple-400/80 transition-colors"
         >
           <span>View All</span>
           <ArrowRight className="w-4 h-4" />

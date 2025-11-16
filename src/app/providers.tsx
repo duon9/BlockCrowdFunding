@@ -250,7 +250,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
               method: 'POST',
               body: formData,
               headers: {
-                'Authorization': `Bearer ${process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}`
+                'x-client-id': process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || ''
               }
             })
             
@@ -274,7 +274,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 method: 'POST',
                 body: formData,
                 headers: {
-                  'Authorization': `Bearer ${process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}`
+                  'x-client-id': process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || ''
                 }
               })
               
