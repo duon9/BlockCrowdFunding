@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: blockfund-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: blockfund
+      MONGO_INITDB_ROOT_PASSWORD: blockfund_password
+      MONGO_INITDB_DATABASE: blockfund
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - blockfund-network
+    restart: unless-stopped
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blockfund-app
+    ports:
+      - "3000:3000"
+    environment:
+      # Database
+      DATABASE_URL: mongodb://blockfund:blockfund_password@mongodb:27017/blockfund?authSource=admin
+      
+      # Next.js
+      NODE_ENV: production
+      NEXTAUTH_URL: http://localhost:3000
+      
+      # ThirdWeb Configuration
+      NEXT_PUBLIC_TEMPLATE_CLIENT_ID: ${NEXT_PUBLIC_TEMPLATE_CLIENT_ID}
+      NEXT_PUBLIC_THIRDWEB_CLIENT_ID: ${NEXT_PUBLIC_THIRDWEB_CLIENT_ID}
+      NEXT_PUBLIC_CONTRACT_ADDRESS: ${NEXT_PUBLIC_CONTRACT_ADDRESS}
+      NEXT_PUBLIC_THIRDWEB_AUTH_DOMAIN: ${NEXT_PUBLIC_THIRDWEB_AUTH_DOMAIN}
+      NEXT_PUBLIC_THIRDWEB_SECRET_KEY: ${NEXT_PUBLIC_THIRDWEB_SECRET_KEY}
+      THIRDWEB_ADMIN_PRIVATE_KEY: ${THIRDWEB_ADMIN_PRIVATE_KEY}
+      
+      # PORT
+      PORT: 3000
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - blockfund-network
+    restart: unless-stopped
+    env_file:
+      - .env
+
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+
+networks:
+  blockfund-network:
+    driver: bridge
